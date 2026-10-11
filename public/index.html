@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroStudio AI — Agente de código para Roblox Studio</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">⚡</span>
+        <span>Neuro<b>Studio</b></span>
+      </a>
+      <div class="nav-links">
+        <button class="nav-btn active" data-tab="chat">Chat</button>
+        <button class="nav-btn" data-tab="keys">API Keys <span class="badge">60</span></button>
+        <button class="nav-btn" data-tab="plugin">Plugin</button>
+        <button class="nav-btn" data-tab="account">Cuenta Roblox</button>
+      </div>
+      <div class="nav-right">
+        <span class="studio-dot" id="studioDot" title="Roblox Studio"></span>
+        <span class="status-text" id="studioText">Studio offline</span>
+      </div>
+    </div>
+  </nav>
+
+  <main id="tab-chat" class="tab active">
+    <section class="chat-wrap">
+      <div class="chat-head">
+        <div>
+          <h1 class="chat-title">Agente de Roblox Studio</h1>
+          <p class="chat-sub">Pregunta ideas, métodos, revisa código — o dile qué construir y lo ejecuta en Studio.</p>
+        </div>
+        <button id="clearChatBtn" class="ghost-btn small-btn">🗑 Limpiar chat</button>
+      </div>
+
+      <div class="chat-box" id="chatBox">
+        <div class="chat-empty" id="chatEmpty">
+          <div class="chat-empty-icon">⚡</div>
+          <h3>¿Qué construimos hoy?</h3>
+          <div class="chat-suggestions" id="suggestions">
+            <button class="suggestion" data-text="Dame 5 ideas de juegos de Roblox que sean fáciles de hacer virales">💡 Dame ideas de juegos virales</button>
+            <button class="suggestion" data-text="Explícame la diferencia entre Script y LocalScript y cuándo usar cada uno">📚 Script vs LocalScript</button>
+            <button class="suggestion" data-text="Construye un obby con checkpoints, plataformas que desaparecen y un leaderboard de velocidad">🎮 Construye un obby en Studio</button>
+            <button class="suggestion" data-text="Inspecciona el ServerScriptService y dime qué scripts tengo">🔍 Inspecciona mi place</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="typing hidden" id="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span> NeuroStudio está pensando…</div>
+
+      <div class="chat-input-bar">
+        <div class="chat-config">
+          <select id="providerSelect"><option value="">Cargando…</option></select>
+          <input id="modelInput" placeholder="modelo (opcional)" list="modelList" />
+          <datalist id="modelList"></datalist>
+          <input id="baseUrlInput" placeholder="base URL (si aplica)" style="display:none" />
+        </div>
+        <div class="chat-input-row">
+          <textarea id="chatInput" rows="2" placeholder="Pregunta algo o describe qué construir… (Enter envía, Shift+Enter salto, Ctrl+K foco)"></textarea>
+          <button id="sendBtn" class="build-btn">Enviar ➤</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <main id="tab-keys" class="tab">
+    <section class="keys-page">
+      <h1 class="page-title">API Keys</h1>
+      <p class="page-sub">Conecta tu clave del proveedor que prefieras. Se guarda en tu navegador <b>y se sincroniza con el servidor local</b> para que el plugin de Roblox Studio la use automáticamente — todo queda en tu máquina.</p>
+      <div class="keys-toolbar">
+        <input id="keySearch" placeholder="Buscar proveedor…" />
+        <select id="keyFilter">
+          <option value="all">Todos</option>
+          <option value="set">Con clave configurada</option>
+          <option value="missing">Sin configurar</option>
+        </select>
+      </div>
+      <div class="keys-grid" id="keysGrid"></div>
+      <div class="keys-note">
+        Al guardar, la clave se verifica contra el proveedor y verás si es válida junto con la lista de modelos disponibles. Azure, Bedrock, Databricks, Cloudflare y "Any LLM" requieren además una URL o ID en el campo "base URL" del chat.
+      </div>
+    </section>
+  </main>
+
+  <main id="tab-plugin" class="tab">
+    <section class="plugin-page">
+      <h1 class="page-title">Plugin de Roblox Studio</h1>
+      <p class="page-sub">El plugin abre un chat sincronizado con la web: habla con el agente desde Studio, ejecuta sus acciones y comparte la misma conversación y tus API keys.</p>
+
+      <div class="plugin-grid">
+        <div class="plugin-card">
+          <div class="plugin-icon">🧩</div>
+          <h3>NeuroStudioAI</h3>
+          <p>Widget con chat integrado, ejecución automática de acciones del agente y reporte de contexto (place + selección). El proveedor y la API key se sincronizan con la web.</p>
+          <div class="plugin-card-actions">
+            <button id="installBtn" class="build-btn">⚡ Instalar automáticamente</button>
+            <a class="ghost-btn" href="/api/plugin/download" download>Descargar .zip</a>
+          </div>
+          <p class="install-status" id="installStatus">comprobando instalación…</p>
+        </div>
+        <div class="plugin-steps">
+          <h3>Instalación</h3>
+          <ol>
+            <li>Pulsa <b>Instalar automáticamente</b> — copia el plugin a <code>%LOCALAPPDATA%\Roblox\Plugins</code> por ti.</li>
+            <li>Abre Roblox Studio — el widget se abre solo, flotando en el centro.</li>
+            <li>Si el servidor no corre, arráncalo: <code>node server.js</code> en la carpeta del proyecto.</li>
+            <li>Pide lo que quieras: el agente crea partes directamente, inserta scripts, inspecciona y edita tu place.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="plugin-how">
+        <h3>¿Cómo funciona el modo agente?</h3>
+        <div class="how-flow">
+          <div class="how-step"><b>1</b><span>Escribes en la web <b>o</b> en Studio — misma conversación compartida en el servidor local.</span></div>
+          <div class="how-arrow">→</div>
+          <div class="how-step"><b>2</b><span>La IA responde y, si hay que actuar, emite acciones (<code>create_instance</code>, <code>insert_script</code>, <code>set_property</code>…).</span></div>
+          <div class="how-arrow">→</div>
+          <div class="how-step"><b>3</b><span>El plugin ejecuta cada acción en Studio — aunque el widget esté cerrado — y devuelve el resultado al chat.</span></div>
+          <div class="how-arrow">→</div>
+          <div class="how-step"><b>4</b><span>La IA lee el resultado y continúa: loop agéntico completo dentro de Roblox.</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <main id="tab-account" class="tab">
+    <section class="account-page">
+      <h1 class="page-title">Cuenta Roblox</h1>
+      <p class="page-sub">Vincula tu cuenta de Roblox para personalizar tus builds. Verificamos tu perfil con las APIs públicas oficiales de Roblox (users + thumbnails). El perfil queda guardado en tu servidor local.</p>
+      <div class="link-box" id="linkBox">
+        <input id="robloxUsername" placeholder="Tu usuario de Roblox (ej. builderman)" />
+        <button id="linkBtn" class="build-btn">Vincular cuenta</button>
+      </div>
+      <div class="error hidden" id="linkError">
+        <h3>No se pudo vincular</h3>
+        <p id="linkErrorText"></p>
+      </div>
+      <div class="profile-card hidden" id="profileCard">
+        <div class="profile-badge">✓ cuenta vinculada</div>
+        <img id="profileAvatar" class="profile-avatar" alt="avatar" />
+        <div class="profile-info">
+          <h3 id="profileName"></h3>
+          <p class="profile-sub" id="profileUsername"></p>
+          <div class="profile-meta">
+            <span id="profileId"></span>
+            <span id="profileJoined"></span>
+          </div>
+          <p class="profile-perks">🔓 Acceso completo: builds personalizados con tu nombre de usuario, historial local y preferencias guardadas.</p>
+          <button id="unlinkBtn" class="ghost-btn danger">Desvincular cuenta</button>
+        </div>
+      </div>
+      <div class="account-features">
+        <div class="feature"><span>👤</span><h3>Perfil verificado</h3><p>Confirmamos que tu usuario existe en Roblox usando la API oficial users.roblox.com.</p></div>
+        <div class="feature"><span>🖼️</span><h3>Avatar integrado</h3><p>Tu avatar headshot aparece en la UI como firma del creador.</p></div>
+        <div class="feature"><span>🔒</span><h3>Solo local</h3><p>Tu perfil vinculado se guarda en data.json en tu máquina. Nada se envía a terceros.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>⚡ Neuro<b>Studio</b> AI</span>
+      <span class="footer-tag">el agente de código para Roblox Studio — corre 100% en tu máquina</span>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

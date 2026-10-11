@@ -1,0 +1,31 @@
+{
+  "name": "neuro-studio-ai",
+  "version": "1.0.0",
+  "description": "AI coding agent for Roblox Studio — local server, web UI and Studio plugin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-syntax.js && node check-web.js && node test-all.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "roblox",
+    "roblox-studio",
+    "ai",
+    "agent",
+    "luau",
+    "openai",
+    "openrouter",
+    "groq"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "luaparse": "^0.3.1"
+  }
+}
