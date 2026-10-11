@@ -252,6 +252,17 @@ local function setProp(inst, key, value)
 	return ok
 end
 
+local function focusOn(inst)
+	pcall(function()
+		if inst:IsA("BasePart") then
+			local cam = workspace.CurrentCamera
+			if cam then
+				cam.CFrame = CFrame.new(inst.CFrame.Position + Vector3.new(14, 11, 14), inst.CFrame.Position)
+			end
+		end
+	end)
+end
+
 local function executeAction(action)
 	local params = action.params or action
 	local actionType = action.action or params.action
@@ -285,6 +296,7 @@ local function executeAction(action)
 		end
 		inst.Parent = parent
 		Selection:Set({ inst })
+		focusOn(inst)
 		return true, inst.ClassName .. " '" .. inst.Name .. "' creado en " .. getInstancePath(parent)
 
 	elseif actionType == "set_property" then
@@ -305,6 +317,7 @@ local function executeAction(action)
 		if params.name then clone.Name = params.name end
 		clone.Parent = parent
 		Selection:Set({ clone })
+		focusOn(clone)
 		return true, clone.ClassName .. " '" .. clone.Name .. "' duplicado en " .. getInstancePath(parent)
 
 	elseif actionType == "set_source" then
@@ -471,23 +484,26 @@ local function doSend()
 		apiKey = #apiKey > 0 and apiKey or nil,
 		model = nil,
 	})
-	local ok, result = pcall(function()
-		return HttpService:PostAsync(SERVER_URL .. "/api/chat/send", payload, Enum.HttpContentType.ApplicationJson, false, 180)
-	end)
-	task.cancel(timerTask)
-	isSending = false
-	sendBtn.Text = "Enviar ➤"
-	sendBtn.BackgroundColor3 = ACCENT
-	if not ok then
-		statusLabel.Text = "error al enviar (¿servidor?)"
-	else
-		local ok2, data = pcall(function() return HttpService:JSONDecode(result) end)
-		if ok2 and data and data.ok == false then
-			statusLabel.Text = "⚠️ " .. tostring(data.error):sub(1, 60)
+	task.spawn(function()
+		local ok, result = pcall(function()
+			return HttpService:PostAsync(SERVER_URL .. "/api/chat/send", payload, Enum.HttpContentType.ApplicationJson, false, 300)
+		end)
+		task.cancel(timerTask)
+		isSending = false
+		sendBtn.Text = "Enviar ➤"
+		sendBtn.BackgroundColor3 = ACCENT
+		if not ok then
+			statusLabel.Text = "sigue pensando — llegará sola ✓"
 		else
-			task.spawn(sync)
+			local ok2, data = pcall(function() return HttpService:JSONDecode(result) end)
+			if ok2 and data and data.ok == false then
+				statusLabel.Text = "⚠️ " .. tostring(data.error):sub(1, 60)
+			else
+				statusLabel.Text = "✓ respuesta en el chat"
+			end
 		end
-	end
+		task.spawn(sync)
+	end)
 end
 
 sendBtn.MouseButton1Click:Connect(doSend)
